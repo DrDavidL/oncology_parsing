@@ -72,10 +72,10 @@ if check_password():
         st.write("Author: David Liebovitz, MD, Northwestern University")
         st.info(disclaimer)
         st.write("Last updated 6/21/23")
-        
-    if openai.api_key:
+    try:  
+        openai.api_key = st.secrets['OPENAI_API_KEY']
         st.write("*API key active - ready to respond!*")
-    else:
+    except:        
         st.warning("API key not found as an environmental variable.")
         api_key = st.text_input("Enter your OpenAI API key:")
 
@@ -105,17 +105,26 @@ if check_password():
     
     schema2 = {
     "properties": {
-        "patient_name": {"type": "string"},
+        "patient_last_name": {"type": "string"},
+        "patient_first_name": {"type": "string"},
         "age_at_visit": {"type": "integer"},
-        "cancer_type": {"type": "string"},
+        "specific_cancer_type": {"type": "string"},
+        "cancer_stage_at_diagnosis": {"type": "string"},
         "age_at_diagnosis": {"type": "integer"},
         "treatment_history": {"type": "string"},
+        "treatment_current": {"type": "string"},
         "recurrence_status": {"type": "string"},
         "age_at_recurrence": {"type": "integer"},
         "recurrence_treatment": {"type": "string"},
+        "cancer_status": {"type": "string"},
+        "cancer_status_date": {"type": "string"},
+        "cancer_status_details": {"type": "string"},
+        "cancer_status_details_date": {"type": "string"},
+        
     },
-    "required": ["patient_name", "age_at_visit", "cancer_type", "age_at_diagnosis"],
+    "required": ["patient_name"],
     }
+    
     if openai.api_key:
         llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
         chain = create_extraction_chain(schema2, llm)
