@@ -114,13 +114,14 @@ if check_password():
         "cancer_stage_at_diagnosis": {"type": "string"},        
         "cancer_treatment_history": {"type": "string"},
         "cancer_treatment_current": {"type": "string"},
-        "cancer_recurrence_status": {"type": "string"},        
+        "cancer_recurrence_status": {"type": "string"},   
+        "cancer_recurrence_date": {"type": "string"},     
         "cancer_recurrence_treatment": {"type": "string"},
         "cancer_current_status": {"type": "string"},
         "cancer_current_status_date": {"type": "string"},
         "cancer_current_status_details": {"type": "string"},        
     },
-    "required": ["patient_name"],
+    "required": ["patient_last_name", "patient_first_name"],
     }
     
     if openai.api_key:
