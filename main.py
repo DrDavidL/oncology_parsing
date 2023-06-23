@@ -124,9 +124,53 @@ if check_password():
     "required": ["patient_last_name", "patient_first_name"],
     }
     
+    schema3 = {
+    "properties": {
+        "patient_last_name": {"type": "string"},
+        "patient_first_name": {"type": "string"},
+        "patient_age": {"type": "integer"},
+        "patient_sex": {"type": "string"},
+        "race": {"type": "string"},
+        "cancer_primary_site": {"type": "string"},
+        "laterality": {"type": "string"},
+        "histologic_type": {"type": "string"},
+        "behavior_code_ICD_O3": {"type": "string"},
+        "grade": {"type": "string"},
+        "diagnosis_confirmation": {"type": "string"},
+        "diagnosis_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+        "sequence_number": {"type": "string"},
+        "tumor_size": {"type": "integer"},
+        "extension": {"type": "string"},
+        "lymph_nodes": {"type": "string"},
+        "prognostic_factors": {"type": "string"},
+        "metastases": {"type": "string"},
+        "surgery_of_primary_site": {"type": "string"},
+        "surgery_to_other_regions": {"type": "string"},
+        "treatment_start_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+        "treatment_end_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+        "radiation": {"type": "string"},
+        "chemotherapy": {"type": "string"},
+        "immunotherapy": {"type": "string"},
+        "hormone_therapy": {"type": "string"},
+        "stem_cell_transplant": {"type": "string"},
+        "tumor_marker_tests": {"type": "string"},
+        "patient_survival_time": {"type": "integer"},
+        "cancer_status_at_last_followup": {"type": "string"},
+        "last_followup_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+        "cause_of_death": {"type": "string"},
+        "tobacco_history": {"type": "string"},
+        "alcohol_use": {"type": "string"},
+    },
+    "required": ["patient_last_name", "patient_first_name"],
+    }
+
+
+
+
+    
     if openai.api_key:
         llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
-        chain = create_extraction_chain(schema2, llm)
+        chain = create_extraction_chain(schema3, llm)
     
     copied_note = st.text_area("Paste your note here", height=600)
     
