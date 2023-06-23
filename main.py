@@ -167,13 +167,13 @@ if check_password():
     schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3"))
     if schema_choice == "Schema 1":
         schema = schema1
-        st.sidebar.code(schema1)
+        st.sidebar.json(schema1)
     elif schema_choice == "Schema 2":
         schema = schema2
-        st.sidebar.code(schema2)
+        st.sidebar.json(schema2)
     elif schema_choice == "Schema 3":
         schema = schema3
-        st.sidebar.code(schema3)
+        st.sidebar.json(schema3)
     
 
     
