@@ -46,6 +46,82 @@ def check_password():
     else:
         # Password correct.
         return True
+    
+schema1 = {
+"properties": {
+    "patient_name": {"type": "string"},
+    "age_at_visit": {"type": "integer"},
+    "cancer_type": {"type": "string"},
+    "age_at_diagnosis": {"type": "integer"},
+    "treatment_history": {"type": "array"},
+    "recurrence_status": {"type": "boolean"},
+    "age_at_recurrence": {"type": "integer"},
+    "recurrence_treatment": {"type": "array"},
+},
+"required": ["patient_name", "age_at_visit", "cancer_type", "age_at_diagnosis"],
+}
+
+schema2 = {
+"properties": {
+    "patient_last_name": {"type": "string"},
+    "patient_first_name": {"type": "string"},
+    "age_at_cancer_diagnosis": {"type": "integer"},
+    "age_at_cancer_recurrence": {"type": "integer"},
+    "age_at_visit": {"type": "integer"},
+    "specific_cancer_type": {"type": "string"},
+    "cancer_stage_at_diagnosis": {"type": "string"},        
+    "cancer_treatment_history": {"type": "string"},
+    "cancer_treatment_current": {"type": "string"},
+    "cancer_recurrence_status": {"type": "string"},   
+    "cancer_recurrence_date": {"type": "string"},     
+    "cancer_recurrence_treatment": {"type": "string"},
+    "cancer_current_status": {"type": "string"},
+    "cancer_current_status_date": {"type": "string"},
+    "cancer_current_status_details": {"type": "string"},        
+},
+"required": ["patient_last_name", "patient_first_name"],
+}
+
+schema3 = {
+"properties": {
+    "patient_last_name": {"type": "string"},
+    "patient_first_name": {"type": "string"},
+    "patient_age": {"type": "integer"},
+    "patient_sex": {"type": "string"},
+    "race": {"type": "string"},
+    "cancer_primary_site": {"type": "string"},
+    "laterality": {"type": "string"},
+    "histologic_type": {"type": "string"},
+    "behavior_code_ICD_O3": {"type": "string"},
+    "grade": {"type": "string"},
+    "diagnosis_confirmation": {"type": "string"},
+    "diagnosis_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+    "sequence_number": {"type": "string"},
+    "tumor_size": {"type": "integer"},
+    "extension": {"type": "string"},
+    "lymph_nodes": {"type": "string"},
+    "prognostic_factors": {"type": "string"},
+    "metastases": {"type": "string"},
+    "surgery_of_primary_site": {"type": "string"},
+    "surgery_to_other_regions": {"type": "string"},
+    "treatment_start_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+    "treatment_end_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+    "radiation": {"type": "string"},
+    "chemotherapy": {"type": "string"},
+    "immunotherapy": {"type": "string"},
+    "hormone_therapy": {"type": "string"},
+    "stem_cell_transplant": {"type": "string"},
+    "tumor_marker_tests": {"type": "string"},
+    "patient_survival_time": {"type": "integer"},
+    "cancer_status_at_last_followup": {"type": "string"},
+    "last_followup_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
+    "cause_of_death": {"type": "string"},
+    "tobacco_history": {"type": "string"},
+    "alcohol_use": {"type": "string"},
+},
+"required": ["patient_last_name", "patient_first_name"],
+}
+
 
 if check_password():
 
@@ -88,84 +164,17 @@ if check_password():
 
 
     st.info("📚 Let AI identify structured content from notes!" )
+    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3"))
+    if schema_choice == "Schema 1":
+        schema = schema1
+        st.sidebar.code(schema1)
+    elif schema_choice == "Schema 2":
+        schema = schema2
+        st.sidebar.code(schema2)
+    elif schema_choice == "Schema 3":
+        schema = schema3
+        st.sidebar.code(schema3)
     
-    schema = {
-    "properties": {
-        "patient_name": {"type": "string"},
-        "age_at_visit": {"type": "integer"},
-        "cancer_type": {"type": "string"},
-        "age_at_diagnosis": {"type": "integer"},
-        "treatment_history": {"type": "array"},
-        "recurrence_status": {"type": "boolean"},
-        "age_at_recurrence": {"type": "integer"},
-        "recurrence_treatment": {"type": "array"},
-    },
-    "required": ["patient_name", "age_at_visit", "cancer_type", "age_at_diagnosis"],
-    }
-    
-    schema2 = {
-    "properties": {
-        "patient_last_name": {"type": "string"},
-        "patient_first_name": {"type": "string"},
-        "age_at_cancer_diagnosis": {"type": "integer"},
-        "age_at_cancer_recurrence": {"type": "integer"},
-        "age_at_visit": {"type": "integer"},
-        "specific_cancer_type": {"type": "string"},
-        "cancer_stage_at_diagnosis": {"type": "string"},        
-        "cancer_treatment_history": {"type": "string"},
-        "cancer_treatment_current": {"type": "string"},
-        "cancer_recurrence_status": {"type": "string"},   
-        "cancer_recurrence_date": {"type": "string"},     
-        "cancer_recurrence_treatment": {"type": "string"},
-        "cancer_current_status": {"type": "string"},
-        "cancer_current_status_date": {"type": "string"},
-        "cancer_current_status_details": {"type": "string"},        
-    },
-    "required": ["patient_last_name", "patient_first_name"],
-    }
-    
-    schema3 = {
-    "properties": {
-        "patient_last_name": {"type": "string"},
-        "patient_first_name": {"type": "string"},
-        "patient_age": {"type": "integer"},
-        "patient_sex": {"type": "string"},
-        "race": {"type": "string"},
-        "cancer_primary_site": {"type": "string"},
-        "laterality": {"type": "string"},
-        "histologic_type": {"type": "string"},
-        "behavior_code_ICD_O3": {"type": "string"},
-        "grade": {"type": "string"},
-        "diagnosis_confirmation": {"type": "string"},
-        "diagnosis_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
-        "sequence_number": {"type": "string"},
-        "tumor_size": {"type": "integer"},
-        "extension": {"type": "string"},
-        "lymph_nodes": {"type": "string"},
-        "prognostic_factors": {"type": "string"},
-        "metastases": {"type": "string"},
-        "surgery_of_primary_site": {"type": "string"},
-        "surgery_to_other_regions": {"type": "string"},
-        "treatment_start_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
-        "treatment_end_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
-        "radiation": {"type": "string"},
-        "chemotherapy": {"type": "string"},
-        "immunotherapy": {"type": "string"},
-        "hormone_therapy": {"type": "string"},
-        "stem_cell_transplant": {"type": "string"},
-        "tumor_marker_tests": {"type": "string"},
-        "patient_survival_time": {"type": "integer"},
-        "cancer_status_at_last_followup": {"type": "string"},
-        "last_followup_date": {"type": "string"}, # ISO date format (yyyy-mm-dd) is recommended
-        "cause_of_death": {"type": "string"},
-        "tobacco_history": {"type": "string"},
-        "alcohol_use": {"type": "string"},
-    },
-    "required": ["patient_last_name", "patient_first_name"],
-    }
-
-
-
 
     
     if openai.api_key:
