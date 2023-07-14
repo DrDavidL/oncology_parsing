@@ -5,6 +5,12 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import create_extraction_chain, create_extraction_chain_pydantic
 from langchain.prompts import ChatPromptTemplate
 
+if "openai_api_key" not in st.session_state:
+    st.session_state.openai_api_key = ''
+    
+if "text_input" not in st.session_state:
+    st.session_state.text_input = ''
+
 def is_valid_api_key(api_key):
     openai.api_key = api_key
 
@@ -17,6 +23,38 @@ def is_valid_api_key(api_key):
         pass
 
     return False
+
+def fetch_api_key():
+    api_key = None
+    
+    try:
+        # Attempt to retrieve the API key as a secret
+        api_key = st.secrets["OPENAI_API_KEY"]
+        # os.environ["OPENAI_API_KEY"] = api_key
+        st.session_state.openai_api_key = api_key
+        os.environ['OPENAI_API_KEY'] = api_key
+        # st.write(f'Here is what we think the key is step 1: {api_key}')
+    except KeyError:
+        
+        if st.session_state.openai_api_key != '':
+            api_key = st.session_state.openai_api_key
+            os.environ['OPENAI_API_KEY'] = api_key
+            # If the API key is already set, don't prompt for it again
+            # st.write(f'Here is what we think the key is step 2: {api_key}')
+            return api_key
+        else:        
+            # If the secret is not found, prompt the user for their API key
+            st.warning("Oh, dear friend of mine! It seems your API key has gone astray, hiding in the shadows. Pray, reveal it to me!")
+            api_key = st.text_input("Please, whisper your API key into my ears: ", key = 'warning')
+  
+            st.session_state.openai_api_key = api_key
+            os.environ['OPENAI_API_KEY'] = api_key
+            # Save the API key as a secret
+            # st.secrets["my_api_key"] = api_key
+            # st.write(f'Here is what we think the key is step 3: {api_key}')
+            return api_key
+    
+    return api_key
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -144,25 +182,19 @@ if check_password():
 2. This tool is not a real doctor. \n    
 3. You will not take any medical action based on the output of this tool. \n   
     """
+    openai_api_key = fetch_api_key()
+    openai.api_key = openai_api_key
     with st.expander('About Oncology Parser - Important Disclaimer'):
         st.write("Author: David Liebovitz, MD, Northwestern University")
         st.info(disclaimer)
         st.write("Last updated 6/21/23")
-    try:  
-        openai.api_key = st.secrets['OPENAI_API_KEY']
-        st.write("*API key active - ready to respond!*")
-    except:        
-        st.warning("API key not found as an environmental variable.")
-        api_key = st.text_input("Enter your OpenAI API key:")
-
-        if st.button("Save"):
-            if is_valid_api_key(api_key):
-                os.environ["OPENAI_API_KEY"] = api_key
-                st.success("API key saved as an environmental variable!")
-            else:
-                st.error("Invalid API key. Please enter a valid API key.")
-
-
+        
+    selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5 ($)", "GPT-4 ($$$$)"))
+    if selected_model == "GPT-3.5 ($)":
+        model = "gpt-3.5-turbo"
+    elif selected_model == "GPT-4 ($$$$)":
+        model = "gpt-4"
+ 
     st.info("📚 Let AI identify structured content from notes!" )
     schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3"))
     if schema_choice == "Schema 1":
@@ -178,12 +210,16 @@ if check_password():
 
     
     if openai.api_key:
-        llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
+        llm = ChatOpenAI(temperature=0, model=model)
         chain = create_extraction_chain(schema3, llm)
+        
+    st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     
     copied_note = st.text_area("Paste your note here", height=600)
     
+    
     if st.button("Extract"):
+        openai_api_key = fetch_api_key()
         extracted_data = chain.run(copied_note)
         st.write(extracted_data)
        
