@@ -196,7 +196,44 @@ if check_password():
         model = "gpt-4"
  
     st.info("📚 Let AI identify structured content from notes!" )
-    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3"))
+    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3", "Method 2"))
+    st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
+    parse_prompt  = """You will be provided with unstructured text about a patient, and your task is to find all information related to any cancer 
+    and reformat for quick understanding by readers. If data is available, complete all fields shown below. Leave blank otherwise.  extract cancer diagnosis date, any recurrence dates, all treatments given and current plan. 
+    If there are multiple cancers, keep each cancer section distinct. Identify other medical conditions and include in a distinct section. 
+    
+    Fields to extract (use bullets for each item, bold responses, and leave blank if not present):
+    
+    - Cancer type:
+    
+    - Cancer patient last name:
+    
+    - Cancer patient first name:
+    
+    - Cancer patient current age:
+    
+    - Cancer patient age at diagnosis:
+    
+    - Cancer patient sex:
+    
+    - Cancer diagnosis date:
+    
+    - Cancer past treatment:
+    
+    - Cancer current treatment:
+    
+    - Cancer current status details:
+    
+    - Cancer current status date:
+    
+    - Additional medical conditions:
+    
+
+    
+    """
+    col1, col2 = st.columns(2)
+    with col1:
+        copied_note = st.text_area("Paste your note here", height=600)
     if schema_choice == "Schema 1":
         schema = schema1
         st.sidebar.json(schema1)
@@ -206,7 +243,19 @@ if check_password():
     elif schema_choice == "Schema 3":
         schema = schema3
         st.sidebar.json(schema3)
-    
+    # elif schema_choice == "Method 2":
+    #     response = openai.ChatCompletion.create(
+    #         model= selected_model,
+    #         messages=[],
+    #         temperature=0,
+    #         top_p=1,
+    #         frequency_penalty=0,
+    #         presence_penalty=0
+    #         )
+        
+
+
+
 
     
     if openai.api_key:
@@ -215,13 +264,33 @@ if check_password():
         
     st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     
-    copied_note = st.text_area("Paste your note here", height=600)
+
     
     
     if st.button("Extract"):
-        openai_api_key = fetch_api_key()
-        extracted_data = chain.run(copied_note)
-        st.write(extracted_data)
-       
+        if schema_choice != "Method 2":
+            openai_api_key = fetch_api_key()
+            extracted_data = chain.run(copied_note)
+            with col2:
+                st.write(extracted_data)
+        
+        elif schema_choice == "Method 2":
+            try:
+                response= openai.ChatCompletion.create(
+                model= model,
+                messages=[
+                    {"role": "system", "content": parse_prompt},
+                    {"role": "user", "content": copied_note}
+                ],
+                temperature = 0, 
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+                )
+                with col2:
+                    st.write(response.choices[0].message.content)
+            except:
+                st.write("OpenAI API key not found. Please enter your key in the sidebar.")
+                st.stop()
     
  
