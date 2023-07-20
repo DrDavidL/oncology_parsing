@@ -8,6 +8,7 @@ streamlit = "*"
 openai = "*"
 langchain = "*"
 deeplake = "*"
+openai-function-call = "*"
 
 [dev-packages]
 

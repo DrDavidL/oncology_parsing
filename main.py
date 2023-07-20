@@ -5,6 +5,37 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import create_extraction_chain, create_extraction_chain_pydantic
 from langchain.prompts import ChatPromptTemplate
 
+import openai
+from openai_function_call import OpenAISchema
+
+from pydantic import Field
+
+class ChartDetails(OpenAISchema):
+    """Cancer History"""
+    last_name: str = Field(..., description="Patient's last name")
+    first_name: str = Field(..., description="Patient's first name")
+    age: int = Field(..., description="Patient's age")
+    sex: str = Field(..., description = "Patient Sex") 
+    cancer_type: str = Field(..., description="Cancer type")
+    stage: str = Field(..., description="Cancer stage")
+    alcohol_use: str = Field(..., description="Alcohol use")
+    tobacco_history: str = Field(..., description="Tobacco history")
+    treatment: str = Field(..., description="Cancer treatment")
+
+def method3(chart, model):
+
+    completion = openai.ChatCompletion.create(
+        model=model,
+        functions=[ChartDetails.openai_schema],
+        messages=[
+            {"role": "system", "content": "I'm going to review medical records to extract cancer details. Use ChartDetails to parse this data."},
+            {"role": "user", "content": chart},
+        ],
+    )
+
+    cancer_details = ChartDetails.from_response(completion)
+    return cancer_details
+
 if "openai_api_key" not in st.session_state:
     st.session_state.openai_api_key = ''
     
@@ -196,7 +227,7 @@ if check_password():
         model = "gpt-4"
  
     st.info("📚 Let AI identify structured content from notes!" )
-    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3", "Method 2"))
+    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3", "Method 2", "Method 3"))
     st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     parse_prompt  = """You will be provided with unstructured text about a patient, and your task is to find all information related to any cancer 
     and reformat for quick understanding by readers. If data is available, complete all fields shown below. Leave blank otherwise.  extract cancer diagnosis date, any recurrence dates, all treatments given and current plan. 
@@ -271,6 +302,12 @@ if check_password():
         if schema_choice != "Method 2":
             openai_api_key = fetch_api_key()
             extracted_data = chain.run(copied_note)
+            with col2:
+                st.write(extracted_data)
+                
+        if schema_choice == "Method 3":
+            openai_api_key = fetch_api_key()
+            extracted_data = method3(copied_note, model)
             with col2:
                 st.write(extracted_data)
         
