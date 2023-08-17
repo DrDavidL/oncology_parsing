@@ -120,9 +120,9 @@ if check_password():
     col1, col2 = st.columns(2)
     with col1:
         copied_note = st.text_area("Paste your note here", height=800)
-        if st.button("Extract"):
-            extracted_data = parse(copied_note, model)
-        # st.write(type(extracted_data))
+    if st.button("Extract"):
+        extracted_data = parse(copied_note, model)
+    # st.write(type(extracted_data))
         with col2:
             # st.text(extracted_data)
             # st.markdown(f"Extract: {extracted_data}")
