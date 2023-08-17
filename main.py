@@ -51,6 +51,7 @@ def parse(chart, model):
     If name, age, or MRN are blank, include '***" for each of those fields. For other fields, if data unavailable, leave blank. If extraction uncertainty exists, add 3 astersiskd (***) after the value. For example, if the patient's age is 50, but the chart is unclear, enter 50***."""
     completion = openai.ChatCompletion.create(
         model=model,
+        temperature=0.2,
         functions=[ChartDetails.openai_schema],
         messages=[
             {"role": "system", "content": system_prompt},
