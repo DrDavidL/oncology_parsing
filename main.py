@@ -17,19 +17,32 @@ class ChartDetails(OpenAISchema):
     age: int = Field(..., description="Patient's age")
     sex: str = Field(..., description = "Patient Sex") 
     cancer_type: str = Field(..., description="Cancer type")
+    diagnosis_date: str = Field(..., description="Cancer diagnosis date")
     stage: str = Field(..., description="Cancer stage")
+    recurrence: bool = Field(..., description="Cancer recurrence")
+    recurrence_date: str = Field(..., description="Cancer recurrence date")
+    recurrence_details: str = Field(..., description="Cancer recurrence details")
     alcohol_use: str = Field(..., description="Alcohol use")
     tobacco_history: str = Field(..., description="Tobacco history")
-    treatment: str = Field(..., description="Cancer treatment")
+    tumor_marker_tests: str = Field(..., description="Tumor marker tests")
+    treatments: str = Field(..., description="Cancer treatment")
+    radiation: bool = Field(..., description="Radiation")
+    radiation_details: str = Field(..., description="Radiation details")
+    hormone_therapy: bool = Field(..., description="Hormone therapy")
+    stem_cell_transplant: bool = Field(..., description="Stem cell transplant")
+    chemotherapy: bool = Field(..., description="Chemotherapy")
+    car_t_cell_therapy: bool = Field(..., description="CAR T cell therapy")
+    immunotherapy: bool = Field(..., description="Immunotherapy")
 
-def method3(chart, model):
-
+@st.cache_data
+def method3(chart, model, output):
+    input = f'Here is chart content: {chart} and here is the preferred output: {output}'
     completion = openai.ChatCompletion.create(
         model=model,
         functions=[ChartDetails.openai_schema],
         messages=[
             {"role": "system", "content": "I'm going to review medical records to extract cancer details. Use ChartDetails to parse this data."},
-            {"role": "user", "content": chart},
+            {"role": "user", "content": input},
         ],
     )
 
@@ -274,6 +287,8 @@ if check_password():
     elif schema_choice == "Schema 3":
         schema = schema3
         st.sidebar.json(schema3)
+    elif schema_choice == "Method 3":
+        output_choice = st.sidebar.selectbox("Pick your output format:", ("Text", "JSON", "Pydantic"))
     # elif schema_choice == "Method 2":
     #     response = openai.ChatCompletion.create(
     #         model= selected_model,
@@ -285,12 +300,13 @@ if check_password():
     #         )
         
 
-
+# def process_text(text, schema):
+#     llm = ChatOpenAI(temperature=0, model=model, verbose = True)
 
 
     
     if openai.api_key:
-        llm = ChatOpenAI(temperature=0, model=model)
+        llm = ChatOpenAI(temperature=0, model=model, verbose = True)
         chain = create_extraction_chain(schema3, llm)
         
     st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
@@ -307,7 +323,7 @@ if check_password():
                 
         if schema_choice == "Method 3":
             openai_api_key = fetch_api_key()
-            extracted_data = method3(copied_note, model)
+            extracted_data = method3(copied_note, model, output_choice)
             with col2:
                 st.write(extracted_data)
         
