@@ -48,7 +48,7 @@ class ChartDetails(OpenAISchema):
 @st.cache_data
 def parse(chart, model):
     system_prompt = """Carefully for accuracy, extract any cancer related details from medical records submitted according to the schema. Use only chart data provided. 
-    If name, age, or MRN are blank, include '***" for those fields. For other fields, if extraction uncertainty exists, add an astersisk (*) after the value. For example, if the patient's age is 50, but the chart is unclear, enter 50*."""
+    If name, age, or MRN are blank, include '***" for each of those fields. For other fields, if data unavailable, leave blank. If extraction uncertainty exists, add 3 astersiskd (***) after the value. For example, if the patient's age is 50, but the chart is unclear, enter 50***."""
     completion = openai.ChatCompletion.create(
         model=model,
         functions=[ChartDetails.openai_schema],
