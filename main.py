@@ -105,7 +105,7 @@ with st.expander('About Oncology Parser - Important Disclaimer'):
     st.write("Last updated 8/16/23")
     
 if check_password():
-    selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5 ($)", "GPT-3.5-turbo-16k ($$)", "GPT-4 ($$$$)"))
+    selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5 ($)", "GPT-3.5-turbo-16k ($$)", "GPT-4 ($$$$)"), index = 1)
     if selected_model == "GPT-3.5 ($)":
         model = "gpt-3.5-turbo"
     elif selected_model == "GPT-3.5-turbo-16k ($$)":
