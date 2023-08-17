@@ -39,7 +39,7 @@ class ChartDetails(OpenAISchema):
     chemotherapy: bool = Field(..., description="Chemotherapy")
     car_t_cell_therapy: bool = Field(..., description="CAR T cell therapy")
     immunotherapy: bool = Field(..., description="Immunotherapy")
-    non_cancer_medical_problems: str = Field(..., description="Other medical problems")
+    non_cancer_diagnoses: str = Field(..., description="Other medical diagnoses")
     current_medications: str = Field(..., description="Current medications")
     allergies: str = Field(..., description="Allergies")
     family_history: str = Field(..., description="Family history")
