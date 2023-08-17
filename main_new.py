@@ -1,23 +1,29 @@
 import streamlit as st
 import openai
+import pandas as pd
 import os  
+import json
 # from langchain.chat_models import ChatOpenAI
 # from langchain.chains import create_extraction_chain, create_extraction_chain_pydantic
 # from langchain.prompts import ChatPromptTemplate
 
 import openai
 from openai_function_call import OpenAISchema
-
+import re
 from pydantic import Field
 
 class ChartDetails(OpenAISchema):
     """Cancer History"""
+    mrn: str = Field(..., description="Patient's medical record number")
     last_name: str = Field(..., description="Patient's last name")
     first_name: str = Field(..., description="Patient's first name")
     age: int = Field(..., description="Patient's age")
     sex: str = Field(..., description = "Patient Sex") 
-    cancer_type: str = Field(..., description="Cancer type")
-    diagnosis_date: str = Field(..., description="Cancer diagnosis date")
+    cancer_type_1: str = Field(..., description="Type of cancer (first)")
+    cancer_type_2: str = Field(..., description="Type of cancer (second)")
+    cancer_type_3: str = Field(..., description="Type of cancer (third)")
+    other_cancer_type_details: str = Field(..., description="Other cancer type details")
+    diagnosis_dates: str = Field(..., description="Cancer diagnosis date")
     stage: str = Field(..., description="Cancer stage")
     recurrence: bool = Field(..., description="Cancer recurrence")
     recurrence_date: str = Field(..., description="Cancer recurrence date")
@@ -33,15 +39,21 @@ class ChartDetails(OpenAISchema):
     chemotherapy: bool = Field(..., description="Chemotherapy")
     car_t_cell_therapy: bool = Field(..., description="CAR T cell therapy")
     immunotherapy: bool = Field(..., description="Immunotherapy")
+    non_cancer_medical_problems: str = Field(..., description="Other medical problems")
+    current_medications: str = Field(..., description="Current medications")
+    allergies: str = Field(..., description="Allergies")
+    family_history: str = Field(..., description="Family history")
+    
 
 @st.cache_data
-def parse(chart, model, output):
-    input = f'Here is chart content: {chart} and here is the preferred output: {output}'
+def parse(chart, model):
+    system_prompt = """Carefully for accuracy, extract any cancer related details from medical records submitted according to the schema. Use only chart data provided. 
+    Do not make up any content including age or name. If extraction uncertainty exists, add an astersisk (*) after the value. For example, if the patient's age is 50, but the chart is unclear, enter 50*."""
     completion = openai.ChatCompletion.create(
         model=model,
         functions=[ChartDetails.openai_schema],
         messages=[
-            {"role": "system", "content": "Carefully for accuracy, extract cancer details from medical records. Use ChartDetails to parse this data."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": chart},
         ],
     )
@@ -100,3 +112,39 @@ if check_password():
         model = "gpt-3.5-turbo-16k"
     elif selected_model == "GPT-4 ($$$$)":
         model = "gpt-4"
+        
+    st.info("📚 Let AI identify structured content from notes!" )
+    st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        copied_note = st.text_area("Paste your note here", height=800)
+    if st.button("Extract"):
+        extracted_data = parse(copied_note, model)
+        # st.write(type(extracted_data))
+        with col2:
+            # st.text(extracted_data)
+            # st.markdown(f"Extract: {extracted_data}")
+            # Split the text into key-value pairs
+            extracted_string = str(extracted_data)
+            # Split the text into lines
+            # Regular expression to match key-value pairs
+            pattern = r"(\w+)=('[^']*'|[^ ]*)"
+
+            # Find all matches in the text
+            matches = re.findall(pattern, extracted_string)
+
+            # Process each match and store in a list of tuples
+            data = []
+            for key, value in matches:
+                # Remove the quotes around the value, if any
+                value = value.strip("'")
+                
+                # Append the key-value pair to the data list
+                data.append((key, value))
+
+            # Convert the list of tuples to a DataFrame
+            df = pd.DataFrame(data, columns=['Key', 'Value'])
+
+            # Display the DataFrame in a table in Streamlit
+            st.table(df)
