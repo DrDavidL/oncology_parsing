@@ -468,7 +468,7 @@ if check_password():
         chain = create_extraction_chain(schema, llm)
         
     # use_sample = st.checkbox("Use sample note")
-    test_or_use =  st.radio("Generate a test note or enter your content!", ("Generate a note", "Paste content"))
+    test_or_use =  st.radio("Generate a test note or enter your content. File(s) upload feature coming!", ("Generate a note", "Paste content"))
     
     if test_or_use == "Generate a note":
       
