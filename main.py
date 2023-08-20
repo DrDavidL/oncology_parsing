@@ -349,7 +349,7 @@ if check_password():
         model = "gpt-3.5-turbo-16k"
  
     st.info("📚 Let AI identify structured content from notes!" )
-    schema_choice = st.radio("Pick your extraction schema:", ("Method 2", "Complex Schema", "Schema 1", "Schema 2", "Schema 3", "Method 3"))
+    schema_choice = st.radio("Pick your extraction schema:", ("Method 2", "Complex Schema", "Schema 1", "Schema 2", "Schema 3",))
     st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     parse_prompt  = """You will be provided with unstructured text about a patient, and your task is to find all information related to any cancer 
     and reformat for quick understanding by readers. If data is available, complete all fields shown below. Leave blank otherwise.  extract cancer diagnosis date, any recurrence dates, all treatments given and current plan. 
