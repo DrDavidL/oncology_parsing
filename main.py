@@ -340,11 +340,13 @@ if check_password():
         st.info(disclaimer)
         st.write("Last updated 6/21/23")
         
-    selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5 ($)", "GPT-4 ($$$$)"))
+    selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5-turbo-16k ($$)","GPT-3.5 ($)", "GPT-4 ($$$$)"))
     if selected_model == "GPT-3.5 ($)":
         model = "gpt-3.5-turbo"
     elif selected_model == "GPT-4 ($$$$)":
         model = "gpt-4"
+    elif selected_model == "GPT-3.5-turbo-16k ($$)":
+        model = "gpt-3.5-turbo-16k"
  
     st.info("📚 Let AI identify structured content from notes!" )
     schema_choice = st.radio("Pick your extraction schema:", ("Method 2", "Complex Schema", "Schema 1", "Schema 2", "Schema 3", "Method 3"))
