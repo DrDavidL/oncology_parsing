@@ -4,8 +4,9 @@ import os
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import create_extraction_chain, create_extraction_chain_pydantic
 from langchain.prompts import ChatPromptTemplate
-
+from my_prompts import *
 import openai
+import time
 from openai_function_call import OpenAISchema
 
 from pydantic import Field
@@ -35,7 +36,7 @@ class ChartDetails(OpenAISchema):
     immunotherapy: bool = Field(..., description="Immunotherapy")
 
 @st.cache_data
-def method3(chart, model, output):
+def method3(chart, model, output = "json"):
     input = f'Here is chart content: {chart} and here is the preferred output: {output}'
     completion = openai.ChatCompletion.create(
         model=model,
@@ -100,6 +101,44 @@ def fetch_api_key():
     
     return api_key
 
+@st.cache_data
+def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperature, history_context):
+    openai.api_key = os.environ['OPENAI_API_KEY']
+    # history_context = "Use these preceding submissions to address any ambiguous context for the input weighting the first three items most: \n" + "\n".join(st.session_state.history) + "now, for the current question: \n"
+    completion = openai.ChatCompletion.create( # Change the function Completion to ChatCompletion
+    # model = 'gpt-3.5-turbo',
+    model = st.session_state.model,
+    messages = [ # Change the prompt parameter to the messages parameter
+            {'role': 'system', 'content': prefix},
+            {'role': 'user', 'content': sample_question},
+            {'role': 'assistant', 'content': sample_answer},
+            {'role': 'user', 'content': my_ask + history_context}
+    ],
+    temperature = temperature,
+    stream = True,   
+    )
+    start_time = time.time()
+    delay_time = 0.01
+    answer = ""
+    full_answer = ""
+    c = st.empty()
+    
+    for event in completion:
+
+
+        c.markdown(answer)
+            # full_answer += answer
+        event_time = time.time() - start_time
+        event_text = event['choices'][0]['delta']
+        answer += event_text.get('content', '')
+        full_answer += event_text.get('content', '')
+        time.sleep(delay_time)
+    # st.write(history_context + prefix + my_ask)
+    # st.write(full_answer)
+        st.session_state.copied_note = full_answer
+
+    return full_answer # Change how you access the message content
+
 def check_password():
     """Returns `True` if the user had the correct password."""
 
@@ -128,6 +167,9 @@ def check_password():
     else:
         # Password correct.
         return True
+
+if 'copied_note' not in st.session_state:
+    st.session_state.copied_note = ''
 
 default_schema = {
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -236,7 +278,7 @@ default_schema = {
 }
 
    
-schema1 = {
+old_schema1 = {
 "properties": {
     "patient_name": {"type": "string"},
     "age_at_visit": {"type": "integer"},
@@ -343,19 +385,22 @@ if check_password():
     selected_model = st.selectbox("Pick your GPT model:", ("GPT-3.5-turbo-16k ($$)","GPT-3.5 ($)", "GPT-4 ($$$$)"))
     if selected_model == "GPT-3.5 ($)":
         model = "gpt-3.5-turbo"
+        st.session_state.model = model
     elif selected_model == "GPT-4 ($$$$)":
         model = "gpt-4"
+        st.session_state.model = model
     elif selected_model == "GPT-3.5-turbo-16k ($$)":
         model = "gpt-3.5-turbo-16k"
+        st.session_state.model = model
  
     st.info("📚 Let AI identify structured content from notes!" )
-    schema_choice = st.radio("Pick your extraction schema:", ("Method 2", "Complex Schema", "Schema 1", "Schema 2", "Schema 3",))
-    st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
+    schema_choice = st.sidebar.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3", "Method 2", "Method 3"))
+    # st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     parse_prompt  = """You will be provided with unstructured text about a patient, and your task is to find all information related to any cancer 
     and reformat for quick understanding by readers. If data is available, complete all fields shown below. Leave blank otherwise.  extract cancer diagnosis date, any recurrence dates, all treatments given and current plan. 
     If there are multiple cancers, keep each cancer section distinct. Identify other medical conditions and include in a distinct section. 
     
-    Fields to extract (use bullets for each item, bold responses, and leave blank if not present):
+    Fields to extract (return JSON):
     
     - Cancer type:
     
@@ -384,25 +429,24 @@ if check_password():
 
     
     """
-    col1, col2 = st.columns(2)
-    with col1:
-        copied_note = st.text_area("Paste your note here", height=600)
+
+    # Set schemas for methods that require it.
         
-    if schema_choice == "Default":
+    if schema_choice == "Complex Schema":
         schema = default_schema
-        st.sidebar.json(default_schema)    
-    if schema_choice == "Schema 1":
-        schema = schema1
-        st.sidebar.json(schema1)
+        # st.sidebar.json(default_schema)    
+    elif schema_choice == "Schema 1":
+        schema = default_schema
+        # st.sidebar.json(schema1)
     elif schema_choice == "Schema 2":
         schema = schema2
-        st.sidebar.json(schema2)
+        # st.sidebar.json(schema2)
     elif schema_choice == "Schema 3":
         schema = schema3
-        st.sidebar.json(schema3)
+        # st.sidebar.json(schema3)
     elif schema_choice == "Method 3":
-        output_choice = st.sidebar.selectbox("Pick your output format:", ("Text", "JSON", "Pydantic"))
-    # elif schema_choice == "Method 2":
+        output_choice = "JSON"
+    # # elif schema_choice == "Method 2":
     #     response = openai.ChatCompletion.create(
     #         model= selected_model,
     #         messages=[],
@@ -413,39 +457,47 @@ if check_password():
     #         )
         
 
-# def process_text(text, schema):
-#     llm = ChatOpenAI(temperature=0, model=model, verbose = True)
+    # def process_text(text, schema):
+    #     llm = ChatOpenAI(temperature=0, model=model, verbose = True)
 
 
     
-    if openai.api_key:
+    if schema_choice != "Method 2":
+      if schema_choice != "Method 3":
         llm = ChatOpenAI(temperature=0, model=model, verbose = True)
-        chain = create_extraction_chain(schema3, llm)
+        chain = create_extraction_chain(schema, llm)
         
-    st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
+    # use_sample = st.checkbox("Use sample note")
+    test_or_use =  st.radio("Generate a test note or enter your content!", ("Generate a note", "Paste content"))
     
+    if test_or_use == "Generate a note":
+      
+      cancer_diagnosis = st.text_input("Enter a cancer diagnosis", placeholder = "e.g., lung cancer", key = 'cancer_diagnosis',)
+      sample_prompt = f"Generate a progress note for a patient with {cancer_diagnosis}."
+      if st.button("Generate a sample note"):
+        generated_note = answer_using_prefix(prefix, sample_prompt, sample_response, sample_prompt, temperature = 0.4, history_context = "", )
+        st.session_state.copied_note = generated_note
+    
+    if test_or_use == "Paste content":
+        st.session_state.copied_note = st.text_area("Paste your note here", height=600)
+    
+    
+    if st.sidebar.button("Extract"):
+        with st.expander("Click here to see the note you entered", expanded = True):
+            st.write(st.session_state.copied_note)
 
-    
-    
-    if st.button("Extract"):
         
-        if schema_choice == "Complex Schema":
-            openai_api_key = fetch_api_key()
-            extracted_data = chain.run(copied_note)
-            with col2:
-                st.write(extracted_data)
-        
-        if schema_choice != "Method 2":
-            openai_api_key = fetch_api_key()
-            extracted_data = chain.run(copied_note)
-            with col2:
-                st.write(extracted_data)
+        # if schema_choice != "Method 2":
+        #     openai_api_key = fetch_api_key()
+        #     extracted_data = chain.run(copied_note)
+        #     with col2:
+        #         st.markdown(extracted_data)
                 
         if schema_choice == "Method 3":
             openai_api_key = fetch_api_key()
-            extracted_data = method3(copied_note, model, output_choice)
-            with col2:
-                st.write(extracted_data)
+            extracted_data = method3(st.session_state.copied_note, model, output_choice)
+            json_extract = extracted_data.json()
+            st.sidebar.json(json_extract)
         
         elif schema_choice == "Method 2":
             try:
@@ -453,17 +505,24 @@ if check_password():
                 model= model,
                 messages=[
                     {"role": "system", "content": parse_prompt},
-                    {"role": "user", "content": copied_note}
+                    {"role": "user", "content": st.session_state.copied_note}
                 ],
                 temperature = 0, 
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0
                 )
-                with col2:
-                    st.write(response.choices[0].message.content)
+                output = response.choices[0].message.content
+                with st.sidebar:
+                    st.json(output)
+                    
             except:
+                # st.write(f'Here is the error: {response}')
                 st.write("OpenAI API key not found. Please enter your key in the sidebar.")
                 st.stop()
-    
- 
+        else:
+            openai_api_key = fetch_api_key()
+            extracted_data = chain.run(st.session_state.copied_note)
+            with st.sidebar:
+                st.sidebar.write(extracted_data)
+  
