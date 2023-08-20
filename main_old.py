@@ -128,7 +128,114 @@ def check_password():
     else:
         # Password correct.
         return True
-    
+
+default_schema = {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "patientInformation": {
+      "type": "object",
+      "properties": {
+        "patientID": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "ethnicity": {
+          "type": "string"
+        },
+        "smokingStatus": {
+          "type": "string"
+        },
+        "familyHistory": {
+          "type": "string"
+        }
+      },
+      "required": ["patientID", "dateOfBirth", "gender"]
+    },
+    "cancerDiagnosis": {
+      "type": "object",
+      "properties": {
+        "diagnosisDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "cancerType": {
+          "type": "string"
+        },
+        "cancerStage": {
+          "type": "string"
+        },
+        "histology": {
+          "type": "string"
+        },
+        "primarySite": {
+          "type": "string"
+        },
+        "metastasisSites": {
+          "type": "string"
+        },
+        "biomarkers": {
+          "type": "string"
+        },
+        "geneticMutations": {
+          "type": "string"
+        }
+      },
+      "required": ["diagnosisDate", "cancerType", "cancerStage", "histology", "primarySite"]
+    },
+    "treatmentInformation": {
+      "type": "object",
+      "properties": {
+        "treatmentType": {
+          "type": "string"
+        },
+        "treatmentStartDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "treatmentEndDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "treatmentResponse": {
+          "type": "string"
+        },
+        "sideEffects": {
+          "type": "string"
+        }
+      },
+      "required": ["treatmentType", "treatmentStartDate", "treatmentEndDate", "treatmentResponse"]
+    },
+    "followUpInformation": {
+      "type": "object",
+      "properties": {
+        "lastFollowUpDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "currentStatus": {
+          "type": "string"
+        },
+        "recurrenceInformation": {
+          "type": "string"
+        },
+        "survivalInformation": {
+          "type": "string"
+        }
+      },
+      "required": ["lastFollowUpDate", "currentStatus"]
+    }
+  },
+  "required": ["patientInformation", "cancerDiagnosis", "treatmentInformation", "followUpInformation"]
+}
+
+   
 schema1 = {
 "properties": {
     "patient_name": {"type": "string"},
@@ -240,7 +347,7 @@ if check_password():
         model = "gpt-4"
  
     st.info("📚 Let AI identify structured content from notes!" )
-    schema_choice = st.radio("Pick your extraction schema:", ("Schema 1", "Schema 2", "Schema 3", "Method 2", "Method 3"))
+    schema_choice = st.radio("Pick your extraction schema:", ("Default", "Schema 1", "Schema 2", "Schema 3", "Method 2", "Method 3"))
     st.markdown('[Sample Oncology Notes](https://www.medicaltranscriptionsamplereports.com/hepatocellular-carcinoma-discharge-summary-sample/)')
     parse_prompt  = """You will be provided with unstructured text about a patient, and your task is to find all information related to any cancer 
     and reformat for quick understanding by readers. If data is available, complete all fields shown below. Leave blank otherwise.  extract cancer diagnosis date, any recurrence dates, all treatments given and current plan. 
@@ -278,6 +385,10 @@ if check_password():
     col1, col2 = st.columns(2)
     with col1:
         copied_note = st.text_area("Paste your note here", height=600)
+        
+    if schema_choice == "Default":
+        schema = default_schema
+        st.sidebar.json(default_schema)    
     if schema_choice == "Schema 1":
         schema = schema1
         st.sidebar.json(schema1)
@@ -315,6 +426,13 @@ if check_password():
     
     
     if st.button("Extract"):
+        
+        if schema_choice == "Default":
+            openai_api_key = fetch_api_key()
+            extracted_data = chain.run(copied_note)
+            with col2:
+                st.write(extracted_data)
+        
         if schema_choice != "Method 2":
             openai_api_key = fetch_api_key()
             extracted_data = chain.run(copied_note)
