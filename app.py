@@ -216,9 +216,9 @@ def main():
             if st.session_state.progress_note:
                 st.markdown(st.session_state.progress_note)
                 
-                if st.button("Edit Patient Data"):
-                    st.session_state.current_page = "Input Patient Data"
-                    st.rerun()
+                if st.checkbox("Edit Note"):
+                    st.session_state.progress_note = st.text_area("Edit Progress Note", st.session_state.progress_note)
+
                     
                 if st.button("Extract mCODE Elements"):
                     with st.spinner("Claude AI is extracting mCODE elements..."):
