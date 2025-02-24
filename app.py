@@ -218,7 +218,7 @@ def main():
                 
                 if st.button("Edit Patient Data"):
                     st.session_state.current_page = "Input Patient Data"
-                    st.experimental_rerun()
+                    st.rerun()
                     
                 if st.button("Extract mCODE Elements"):
                     with st.spinner("Claude AI is extracting mCODE elements..."):
